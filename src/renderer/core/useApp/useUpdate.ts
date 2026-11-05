@@ -72,8 +72,11 @@ export default () => {
     return (versionInfo.newVersion?.history && !versionInfo.reCheck
       ? Promise.resolve(versionInfo.newVersion)
       : getVersionInfo().then((body: any) => {
-        versionInfo.newVersion = body
-        return body
+        // 二改清单同时带 version（上游包版本，给旧客户端比较用）与 modVersion（二改版号）。
+        // 新客户端一律用 modVersion 判断，避免包版本号与二改版号混在一起。
+        const info = body && body.modVersion ? { ...body, version: body.modVersion } : body
+        versionInfo.newVersion = info
+        return info
       })
     ).catch(() => {
       if (versionInfo.newVersion) return versionInfo.newVersion

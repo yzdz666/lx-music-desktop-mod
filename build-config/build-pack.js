@@ -48,8 +48,8 @@ const options = {
   publish: [
     {
       provider: 'github',
-      owner: 'lyswhut',
-      repo: 'lx-music-desktop',
+      owner: 'yzdz666',
+      repo: 'lx-music-desktop-mod',
     },
   ],
 }
@@ -60,9 +60,10 @@ const options = {
 const winOptions = {
   win: {
     icon: './resources/icons/icon.ico',
-    legalTrademarks: 'lyswhut',
-    // 二改：Linux 交叉打包时不依赖 wine 改写 exe 资源
-    signAndEditExecutable: false,
+    legalTrademarks: 'LX Mod',
+    // 二改：没有代码签名证书，只跳过签名，仍写入图标与版本信息
+    // （signAndEditExecutable: false 会连图标/产品名一起跳过，exe 属性里显示 Electron）
+    signExecutable: false,
     // artifactName: '${productName}-v${version}-${env.ARCH}-${env.TARGET}.${ext}',
   },
   nsis: {
@@ -71,7 +72,7 @@ const winOptions = {
     allowToChangeInstallationDirectory: true,
     // differentialPackage: true,
     license: './licenses/license.rtf',
-    shortcutName: 'LX Music',
+    shortcutName: 'LX Mod',
   },
 }
 /**
@@ -80,7 +81,7 @@ const winOptions = {
  */
 const linuxOptions = {
   linux: {
-    maintainer: 'lyswhut <lyswhut@qq.com>',
+    maintainer: '月下独酌 <3139606844@qq.com>',
     // artifactName: '${productName}-${version}.${env.ARCH}.${ext}',
     icon: './resources/icons',
     category: 'Utility;AudioVideo;Audio;Player;Music;',
@@ -90,9 +91,9 @@ const linuxOptions = {
       // https://specifications.freedesktop.org/desktop-entry-spec/latest/example.html
       // https://developer.gnome.org/documentation/guidelines/maintainer/integrating.html#desktop-files
       entry: {
-        Name: 'LX Music',
-        'Name[zh_CN]': 'LX Music',
-        'Name[zh_TW]': 'LX Music',
+        Name: 'LX Mod',
+        'Name[zh_CN]': 'LX Mod',
+        'Name[zh_TW]': 'LX Mod',
         Encoding: 'UTF-8',
         MimeType: 'x-scheme-handler/lxmusic',
         StartupNotify: 'false',
@@ -177,13 +178,13 @@ const createTarget = {
   win(arch, packageType) {
     switch (packageType) {
       case 'setup':
-        winOptions.artifactName = `\${productName}-v\${version}-${arch}-Setup.\${ext}`
+        winOptions.artifactName = `LXMod-Desktop-v\${version}-win-${arch}-Setup.\${ext}`
         return {
           buildOptions: { win: ['nsis'] },
           options: winOptions,
         }
       case 'green':
-        winOptions.artifactName = `\${productName}-v\${version}-win_${arch}-green.\${ext}`
+        winOptions.artifactName = `LXMod-Desktop-v\${version}-win-${arch}-green.\${ext}`
         return {
           buildOptions: { win: ['7z'] },
           options: winOptions,
@@ -217,6 +218,12 @@ const createTarget = {
    */
   linux(arch, packageType) {
     switch (packageType) {
+      case 'tarGz':
+        linuxOptions.artifactName = `LXMod-Desktop-v\${version}-linux-${arch}.\${ext}`
+        return {
+          buildOptions: { linux: ['tar.gz'] },
+          options: linuxOptions,
+        }
       case 'deb':
         linuxOptions.artifactName = `\${productName}_\${version}_${arch == 'x64' ? 'amd64' : arch}.\${ext}`
         return {

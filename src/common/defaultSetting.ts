@@ -20,7 +20,9 @@ const defaultSetting: LX.AppSetting = {
   'common.controlBtnPosition': isMac ? 'left' : 'right',
   'common.playBarProgressStyle': 'mini',
   'common.transparentWindow': !isMac,
-  'common.tryAutoUpdate': true,
+  // 二改版：内置自动下载更新已停用（见 src/main/modules/winMain/autoUpdate.ts），
+  // 默认不勾选，避免用户误以为会自动装新版
+  'common.tryAutoUpdate': false,
   'common.showChangeLog': true,
 
   'player.startupAutoPlay': false,

@@ -110,8 +110,8 @@ export default () => {
   })
 
   mainOn(WIN_MAIN_RENDERER_EVENT_NAME.update_download_update, () => {
-    if (!autoUpdater.isUpdaterActive()) return
-    void autoUpdater.downloadUpdate()
+    // 二改版不通过 electron-updater 下载安装包（见下方 checkUpdate 说明），
+    // 下载入口统一走渲染进程的下载页，这里直接忽略。
   })
 
   mainOn(WIN_MAIN_RENDERER_EVENT_NAME.quit_update, () => {
@@ -124,24 +124,15 @@ export default () => {
 }
 
 const checkUpdate = () => {
-  // if (!isFirstCheckedUpdate) {
-  //   if (waitEvent.length) {
-  //     waitEvent.forEach((event, index) => {
-  //       setTimeout(() => { // 延迟发送事件，过早发送可能渲染进程还没启动完成
-  //         sendEvent(event.type, event.info)
-  //       }, 2000 * (index + 1))
-  //     })
-  //     waitEvent = []
-  //   }
-  //   return
-  // }
-  // isFirstCheckedUpdate = false
-
-  // 由于集合安装包中不包含win arm版，这将会导致arm版更新失败
-  if (isWin && process.arch.includes('arm')) {
-    handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_error, info: 'failed' })
-  } else {
-    autoUpdater.autoDownload = global.lx.appSetting['common.tryAutoUpdate']
-    void autoUpdater.checkForUpdates()
-  }
+  // 二改版：不再走 electron-updater。
+  //
+  // electron-updater 用「安装包 app 版本」和 GitHub Release 的 latest.yml 比较，
+  // 而我们的产物既没有代码签名、也没有为每个版本生成 latest.yml；
+  // 更关键的是历史 publish 配置指向上游 lyswhut/lx-music-desktop，
+  // 一旦触发下载，用户装回去的就是官方版，二改功能全部丢失。
+  //
+  // 现在统一由渲染进程读自建清单 desktop-version.json 判断版本，
+  // 有新版时引导用户打开二改版下载页手动覆盖安装（数据保留）。
+  // 这里只回一条 not-available，让渲染进程接着用自建清单做判断。
+  handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_not_available, info: {} })
 }

@@ -28,16 +28,16 @@
 - **一起听** —— 与手机版同一协议、同一房间，手机电脑同房
 - **平台设置** —— 音源音质测试、三平台账号、自定义主题背景、听歌播报、关于与检查更新
 
-当前版本 **1.1.0**，功能对齐手机版 **v1.22.35**。
+当前版本 **1.1.1**，功能对齐手机版 **v1.22.35**。
 
 ## 下载
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.0-win-x64-Setup.exe` | Windows 10/11 x64 | 115.7 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.0-win-x64-green.7z` | Windows 10/11 x64 | 113.5 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.0-linux-x64.tar.gz` | Linux x64 | 141.8 MB | 免安装包，解压后运行 `LXMod-Desktop-linux-x64/lxmod` |
-| `lxmod-desktop-src-v1.1.0.zip` | 源码 | 12.9 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.1-win-x64-Setup.exe` | Windows 10/11 x64 | 115.6 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.1-win-x64-green.7z` | Windows 10/11 x64 | 95.1 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.1-linux-x64.tar.gz` | Linux x64 | 126.2 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.1-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.1.zip` | 源码 | 约 13 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
 <https://aa9247f7339b2cb18.app.workbuddy.host/desktop.html?sharecode=ER6OKBO4HG>
@@ -45,6 +45,8 @@
 > 安装包没有购买代码签名证书，Windows 首次运行可能提示「已保护你的电脑」，点「更多信息」→「仍要运行」即可。介意的话先用绿色版。
 
 应用内「检查更新」读的是自建清单 [`desktop-version.json`](https://aa9247f7339b2cb18.app.workbuddy.host/downloads/desktop-version.json?sharecode=ER6OKBO4HG)，主站取不到时自动回退到本仓库 Release 的 `latest/download`。不会再拉官方版本信息，也就不会出现「点了更新装回洛雪官方版、二改功能全丢」的情况。
+
+> **1.1.1 起不再内置自动下载更新。** 点「去下载新版本」直接打开下载页，下载后覆盖安装即可（歌单、设置、账号都保留）。旧版内置的 electron-updater 按「安装包版本 + 上游 latest.yml」判断，既没有为每个版本发布 latest.yml，历史 publish 又指向上游仓库，一旦触发就会装回官方版，因此整条链路已移除。
 
 ## 装完必做两步
 
@@ -153,6 +155,18 @@ doc/mod-desktop.md                       二改说明（功能、实现、验证
 - 一起听以房主 / 播放源为权威，跟随端不主动控制播放
 - Linux 包在 Xvfb 无头环境完成功能验证，未做真机桌面环境全量验证
 - 桌面版与手机版数据不互通（歌单 / 设置各自独立）
+
+## 更新日志
+
+### 1.1.1（2026-11-05）
+
+- **修复「关于 → GitHub 源码」跳到手机版仓库**，现在指向本仓库，并单独列出手机版仓库入口
+- **关于页 / 更新弹窗里的上游跳转全部改掉**：「最新版下载地址」「提交 Issue」原来指向洛雪官方仓库与官方 Release，用户点过去很容易装回官方版、二改功能全丢
+- **移除内置自动下载更新**（electron-updater）：不再读上游 `latest.yml`，点「去下载新版本」直接打开下载页；主进程只回一条「无可用更新」，版本判断统一走自建清单
+- 默认关闭「自动下载更新」开关
+- **安装包补齐图标与版本信息**：此前 `signAndEditExecutable: false` 把图标和元数据一起跳过，exe 属性里显示 `Electron 42.11.6 / GitHub, Inc.`，现在显示 `LX Mod 1.1.1 / 月下独酌`
+- 产物统一命名 `LXMod-Desktop-v版本-平台-架构`，Linux 增加 `tar.gz` 目标
+- 打包配置的 `publish` 仓库由上游改为本仓库；桌面快捷方式、Linux desktop entry、legalTrademarks、maintainer 一并改为 LX Mod
 
 ## 相关仓库
 
