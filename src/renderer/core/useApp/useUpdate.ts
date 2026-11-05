@@ -3,7 +3,6 @@ import {
   onUpdateAvailable,
   onUpdateDownloaded,
   onUpdateError,
-  onUpdateNotAvailable,
   onUpdateProgress,
   getIgnoreVersion,
   getLastStartInfo,
@@ -162,19 +161,15 @@ export default () => {
       showUpdateModal()
     })
   })
-  const rUpdateNotAvailable = onUpdateNotAvailable(({ params: info }) => {
+  const rUpdateNotAvailable = () => {
     clearUpdateTimeout()
-    // versionInfo.newVersion = {
-    //   version: info.version,
-    //   desc: info.releaseNotes as string,
-    // }
-    void handleGetVersionInfo().finally(() => {
-      versionInfo.isLatest = true
-      versionInfo.isUnknown = false
-      versionInfo.status = 'idle'
-      handleShowChangeLog()
+    // 主进程只回一条「不可用」，真正的版本判断在自建清单里。
+    // 之前这里直接把 isLatest 置 true，导致清单里有新版本也不会提示；
+    // 统一走 showUpdateModal() 做 compareVer 比较。
+    void nextTick(() => {
+      showUpdateModal()
     })
-  })
+  }
   const rUpdateError = onUpdateError((params) => {
     clearUpdateTimeout()
     // versionInfo.status = 'error'

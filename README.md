@@ -28,16 +28,16 @@
 - **一起听** —— 与手机版同一协议、同一房间，手机电脑同房
 - **平台设置** —— 音源音质测试、三平台账号、自定义主题背景、听歌播报、关于与检查更新
 
-当前版本 **1.1.1**，功能对齐手机版 **v1.22.35**。
+当前版本 **1.1.2**，功能对齐手机版 **v1.22.35**。
 
 ## 下载
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.1-win-x64-Setup.exe` | Windows 10/11 x64 | 115.6 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.1-win-x64-green.7z` | Windows 10/11 x64 | 95.1 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.1-linux-x64.tar.gz` | Linux x64 | 126.2 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.1-linux-x64/lx-music-desktop` |
-| `lxmod-desktop-src-v1.1.1.zip` | 源码 | 约 13 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.2-win-x64-Setup.exe` | Windows 10/11 x64 | 115.5 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.2-win-x64-green.7z` | Windows 10/11 x64 | 95.0 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.2-linux-x64.tar.gz` | Linux x64 | 126.1 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.1-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.2.zip` | 源码 | 约 13 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
 <https://aa9247f7339b2cb18.app.workbuddy.host/desktop.html?sharecode=ER6OKBO4HG>
@@ -157,6 +157,21 @@ doc/mod-desktop.md                       二改说明（功能、实现、验证
 - 桌面版与手机版数据不互通（歌单 / 设置各自独立）
 
 ## 更新日志
+
+### 1.1.2（2026-11-05）
+
+**修复：装完只有进程、没有窗口（打不开）**
+
+根因是数据库用的原生模块 `better-sqlite3` 打包时被换成了 `build-config/lib/better_sqlite3_win32-x64.node`，那是给 Electron 22（ABI 110）编的产物；当前 Electron 42 的 ABI 是 146，Windows 上 `dlopen` 直接失败。数据库 worker 起不来，主进程又没监听 worker 的 `error`，`initAppSetting()` 永远不返回 —— 于是任务管理器里能看到 2~3 个 Electron 进程，却一个窗口都不弹。Linux 版没事，是因为 Linux 那份 lib 恰好是 Node-API 版本。
+
+修复与加固：
+
+- 原生模块改为优先使用 `better-sqlite3` 自带的 N-API 预编译产物（`prebuilds/win32-x64.node`），不再依赖 Electron ABI；打包时会校验并打印实际使用的二进制
+- 数据库 worker 增加 `error` / `exit` 监听，初始化加 15 秒超时；失败时弹窗写明原因与日志路径后退出，不再静默卡死
+- 修复「检查更新」永远提示已是最新：主进程回 `not-available` 后，渲染层原来直接置 `isLatest = true`，从不比较清单版本。现在统一走 `showUpdateModal()` 做 `compareVer`
+- 更新清单改为主站与 GitHub Release **同时取、取版本号更高的一份**，主站忘了更新也不会漏版本；单源失败不影响
+- 主进程彻底移除 `electron-updater`（连 `app-update.yml` 依赖一起），避免再出现「点更新装回官方版」
+- 协议弹窗、Win7 旧版提示里的上游链接改为本仓库 / 本仓库发布页
 
 ### 1.1.1（2026-11-05）
 

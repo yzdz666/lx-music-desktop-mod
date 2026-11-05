@@ -8,7 +8,7 @@ import defaultSetting from '@common/defaultSetting'
 import { isExistWindow as isExistMainWindow, showWindow as showMainWindow } from './modules/winMain'
 import { createAppEvent, createDislikeEvent, createListEvent } from '@main/event'
 import { isMac, log } from '@common/utils'
-import createWorkers from './worker'
+import createWorkers, { getDBServiceWorkerError } from './worker'
 import { migrateDBData } from './utils/migrate'
 import { openDirInExplorer } from '@common/utils/electron'
 import { setProxyByHost } from '@common/utils/request'
@@ -300,6 +300,22 @@ const backupDB = (backupPath: string) => {
   openDirInExplorer(backupPath)
 }
 
+// 数据库 worker 起不来时（原生模块 ABI 不匹配、文件损坏等），Comlink 调用不会返回，
+// 主进程会一直等下去，用户只看到进程、看不到窗口。加超时把问题暴露出来。
+const initDBService = async() => {
+  let timer: NodeJS.Timeout
+  const timeout = new Promise<never>((resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(getDBServiceWorkerError() ?? new Error('数据库初始化超时（15 秒），数据库服务未能启动。'))
+    }, 15000)
+    timer.unref?.()
+  })
+  return Promise.race([
+    global.lx.worker.dbService.init(global.lxDataPath),
+    timeout,
+  ]).finally(() => { clearTimeout(timer) })
+}
+
 let isInitialized = false
 export const initAppSetting = async() => {
   if (!global.lx.inited) {
@@ -310,7 +326,7 @@ export const initAppSetting = async() => {
   }
 
   if (!isInitialized) {
-    let dbFileExists = await global.lx.worker.dbService.init(global.lxDataPath)
+    let dbFileExists = await initDBService()
     if (dbFileExists === null) {
       const backupPath = path.join(global.lxDataPath, `lx.data.db.${Date.now()}.bak`)
       dialog.showMessageBoxSync({
@@ -319,7 +335,7 @@ export const initAppSetting = async() => {
         detail: `数据库表结构校验失败，我们将把有问题的数据库备份到：${backupPath}\n若此问题导致你的数据丢失，你可以尝试从备份文件找回它们。\n\nThe database table structure verification failed, we will back up the problematic database to: ${backupPath}\nIf this problem causes your data to be lost, you can try to retrieve them from the backup file.`,
       })
       backupDB(backupPath)
-      dbFileExists = await global.lx.worker.dbService.init(global.lxDataPath)
+      dbFileExists = await initDBService()
     }
     global.lx.appSetting = (await initSetting()).setting
     if (!dbFileExists) await migrateDBData().catch(err => { log.error(err) })

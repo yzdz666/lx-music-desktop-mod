@@ -1,3 +1,4 @@
+import { compareVer } from '@common/utils'
 import { httpGet } from './request'
 
 // 二改版自己的更新清单，不再读上游 lyswhut 的版本信息。
@@ -12,11 +13,11 @@ const address = [
 const request = async(url, retryNum = 0) => {
   return new Promise((resolve, reject) => {
     httpGet(url, {
-      timeout: 10000,
+      timeout: 8000,
       follow_max: 5,
     }, (err, resp, body) => {
       if (err || resp.statusCode != 200) {
-        ++retryNum >= 3
+        ++retryNum >= 2
           ? reject(err || new Error(resp.statusMessage || resp.statusCode))
           : request(url, retryNum).then(resolve).catch(reject)
       } else resolve(body)
@@ -40,23 +41,39 @@ const getNpmPkgInfo = async(url) => {
   })
 }
 
-export const getVersionInfo = async(index = 0) => {
-  const [url, source] = address[index]
-  let promise
-  switch (source) {
-    case 'direct':
-      promise = getDirectInfo(url)
-      break
-    case 'npm':
-      promise = getNpmPkgInfo(url)
-      break
-  }
+const loadInfo = (url, source) => {
+  return source === 'npm' ? getNpmPkgInfo(url) : getDirectInfo(url)
+}
 
-  return promise.catch(async(err) => {
-    index++
-    if (index >= address.length) throw err
-    return getVersionInfo(index)
+const withTimeout = (promise, ms) => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { reject(new Error('timeout')) }, ms)
+    promise.then(value => {
+      clearTimeout(timer)
+      resolve(value)
+    }, err => {
+      clearTimeout(timer)
+      reject(err)
+    })
   })
+}
+
+const getVer = info => info.modVersion || info.version
+
+export const getVersionInfo = async() => {
+  // 主站清单可能还没跟上（例如刚发版），只认主站会漏掉新版本；
+  // 只认 GitHub 又可能被网络挡住。两边同时取，谁的版本号高用谁，单边失败不影响结果。
+  const list = await Promise.all(address.map(([url, source], index) => {
+    return withTimeout(loadInfo(url, source), index === 0 ? 8000 : 6000)
+      .then(info => ({ info }), () => null)
+  }))
+  let best = null
+  for (const item of list) {
+    if (!item) continue
+    if (!best || compareVer(getVer(item.info), getVer(best)) > 0) best = item.info
+  }
+  if (!best) throw new Error('failed')
+  return best
 }
 
 // getVersionInfo().then(info => {

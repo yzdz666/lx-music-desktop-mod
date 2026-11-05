@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 /** 二改版发布信息：关于页、更新检查共用一处，改版本只改这里（package.json 的 version 需同步） */
-export const MOD_VERSION = '1.1.1'
+export const MOD_VERSION = '1.1.2'
 /** 二改版主页（手机版 / 电脑版下载入口，分享网关要求带 sharecode） */
 export const MOD_HOME_URL = 'https://aa9247f7339b2cb18.app.workbuddy.host/?sharecode=ER6OKBO4HG'
 /** 电脑版下载页（含安装包、绿色版、Linux 包、源码 zip） */
