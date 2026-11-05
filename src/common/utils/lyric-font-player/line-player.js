@@ -137,7 +137,9 @@ export default class LinePlayer {
   }
 
   _handleMaxLine() {
-    this.onPlay(this.curLineNum, this.lines[this.curLineNum].text, this._currentTime())
+    const curLine = this.lines[this.curLineNum]
+    if (!curLine) return
+    this.onPlay(this.curLineNum, curLine.text, this._currentTime())
     this.pause()
   }
 
@@ -147,12 +149,15 @@ export default class LinePlayer {
     if (this.curLineNum >= this.maxLine) return this._handleMaxLine()
 
     let curLine = this.lines[this.curLineNum]
+    // 定时器回调可能在 setLyric('') / 切歌之后才执行，此时行数已经变少
+    if (!curLine) return
 
     const currentTime = this._currentTime()
     const driftTime = currentTime - curLine.time
 
     if (driftTime >= 0) {
       let nextLine = this.lines[this.curLineNum + 1]
+      if (!nextLine) return this._handleMaxLine()
       const delay = (nextLine.time - curLine.time - driftTime) / this._rate
 
       if (delay > 0) {
@@ -188,7 +193,9 @@ export default class LinePlayer {
   }
 
   play(curTime = 0) {
-    if (!this.lines.length) return
+    // 构造后还没 setLyric 时 lines 是 null，直接 play 会抛
+    // TypeError: Cannot read properties of null (reading 'length')（首次播放无歌词歌曲必现）
+    if (!this.lines?.length) return
     this.pause()
     this.isPlay = true
 
@@ -208,14 +215,16 @@ export default class LinePlayer {
     const currentTime = this._currentTime()
     const curLineNum = this._findCurLineNum(currentTime)
     if (this.curLineNum !== curLineNum) {
+      const curLine = this.lines[curLineNum]
+      if (!curLine) return
       this.curLineNum = curLineNum
-      this.onPlay(curLineNum, this.lines[curLineNum].text, currentTime)
+      this.onPlay(curLineNum, curLine.text, currentTime)
     }
   }
 
   setPlaybackRate(rate) {
     this._rate = rate
-    if (!this.lines.length) return
+    if (!this.lines?.length) return
     if (!this.isPlay) return
     this.play(this._currentTime())
   }

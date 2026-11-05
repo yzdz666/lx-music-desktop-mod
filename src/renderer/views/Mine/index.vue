@@ -20,15 +20,30 @@
     <div v-if="!loggedIn" :class="$style.loginBox">
       <h3>登录{{ platformName }}账号</h3>
       <p :class="$style.hint">
-        在浏览器打开 <b>{{ loginHost }}</b> 并登录，按 F12 → Application → Cookies → 复制整段 Cookie
-        （或只复制关键字段），粘贴到下面即可。
+        点下面的按钮会在应用内打开 <b>{{ platformName }}</b> 官方登录页，
+        直接输入<b>手机号 + 验证码</b>（或扫码）登录。登录成功后窗口会自动关闭，账号只保存在本机。
       </p>
-      <textarea v-model="cookieInput" :class="$style.textarea" :placeholder="cookiePlaceholder" spellcheck="false" />
       <div :class="$style.row">
-        <button :class="$style.primaryBtn" :disabled="loggingIn" @click="handleLogin">{{ loggingIn ? '登录中…' : '登录' }}</button>
+        <button :class="$style.webLoginBtn" :disabled="webLoggingIn" @click="handleWebLogin">
+          {{ webLoggingIn ? '等待登录…' : '打开登录窗口（手机号 / 扫码）' }}
+        </button>
         <span :class="$style.error">{{ error }}</span>
       </div>
-      <p :class="$style.hint">Cookie 只保存在本机，不会上传到任何服务器。账号仅用于读取每日推荐、歌单和云盘列表。</p>
+      <p :class="$style.hint">
+        登录窗口用的是独立浏览器会话，不会影响系统浏览器；只读取该平台的登录凭证，不上传任何服务器。
+      </p>
+
+      <details :class="$style.cookieBox">
+        <summary :class="$style.cookieSummary">登录窗口打不开？改用粘贴 Cookie</summary>
+        <p :class="$style.hint">
+          在浏览器打开 <b>{{ loginHost }}</b> 并登录，按 F12 → Application → Cookies → 复制整段 Cookie
+          （或只复制关键字段），粘贴到下面即可。
+        </p>
+        <textarea v-model="cookieInput" :class="$style.textarea" :placeholder="cookiePlaceholder" spellcheck="false" />
+        <div :class="$style.row">
+          <button :class="$style.primaryBtn" :disabled="loggingIn" @click="handleLogin">{{ loggingIn ? '登录中…' : '登录' }}</button>
+        </div>
+      </details>
     </div>
 
     <div v-else :class="$style.body">
@@ -86,13 +101,15 @@
 <script>
 import { ref, computed, onMounted } from '@common/utils/vueTools'
 import { LIST_IDS } from '@common/constants'
-import { modSetting, updateModSetting } from '@renderer/core/mod/settings'
+import { modSetting } from '@renderer/core/mod/settings'
 import * as wy from '@renderer/core/mod/netease'
 import * as tx from '@renderer/core/mod/qq'
 import * as kg from '@renderer/core/mod/kugou'
 import { setTempList, addListMusics } from '@renderer/store/list/action'
 import { playList } from '@renderer/core/player'
 import { playMusicInfo, tempPlayList } from '@renderer/store/player/state'
+import { rendererInvoke } from '@common/rendererIpc'
+import { MOD_LOGIN_EVENT } from '@common/modLogin'
 import ModSongTable from '@renderer/components/mod/SongTable.vue'
 
 const TEMP_LIST_ID = 'mod_mine'
@@ -105,6 +122,12 @@ const PLATFORM_META = {
     cookieKey: 'wyCookie',
     nicknameKey: 'wyNickname',
     avatarKey: 'wyAvatar',
+    // 与手机版 WebLoginModal 同一套登录页与判定规则
+    loginUrl: 'https://music.163.com/m/login',
+    loginMatch: '(?:^|;\\s*)MUSIC_U=',
+    loginHosts: ['music.163.com', '163.com'],
+    loginMobile: true,
+    loginSize: { width: 460, height: 780 },
   },
   tx: {
     name: 'QQ 音乐',
@@ -113,6 +136,11 @@ const PLATFORM_META = {
     cookieKey: 'txCookie',
     nicknameKey: 'txNickname',
     avatarKey: 'txAvatar',
+    loginUrl: 'https://y.qq.com/',
+    loginMatch: '(?:^|;\\s*)(?:qm_keyst|qqmusic_key|musickey)=',
+    loginHosts: ['qq.com'],
+    loginAutoClick: true,
+    loginSize: { width: 1080, height: 780 },
   },
   kg: {
     name: '酷狗音乐',
@@ -121,6 +149,12 @@ const PLATFORM_META = {
     cookieKey: 'kgCookie',
     nicknameKey: 'kgNickname',
     avatarKey: 'kgAvatar',
+    loginUrl: 'https://www.kugou.com/',
+    // kg_mid 是游客设备号，不能当登录标记
+    loginMatch: '(?:^|;\\s*)(?:KuGoo|kg_music)=',
+    loginHosts: ['kugou.com'],
+    loginAutoClick: true,
+    loginSize: { width: 1080, height: 780 },
   },
 }
 
@@ -130,6 +164,7 @@ export default {
   setup() {
     const cookieInput = ref('')
     const loggingIn = ref(false)
+    const webLoggingIn = ref(false)
     const platform = ref('wy')
     const avatar = ref('')
     const view = ref('songs')
@@ -203,17 +238,21 @@ export default {
 
     const setError = (err) => { error.value = err?.message || String(err) }
 
+    const saveLogin = async(cookie) => {
+      if (platform.value == 'wy') await wy.loginWithCookie(cookie)
+      else if (platform.value == 'tx') await tx.loginWithCookie(cookie)
+      else await kg.loginWithCookie(cookie)
+      await loadAvatar()
+      await openEntry(entries.value[0])
+    }
+
     const handleLogin = async() => {
       if (loggingIn.value) return
       loggingIn.value = true
       error.value = ''
       try {
-        if (platform.value == 'wy') await wy.loginWithCookie(cookieInput.value)
-        else if (platform.value == 'tx') await tx.loginWithCookie(cookieInput.value)
-        else await kg.loginWithCookie(cookieInput.value)
+        await saveLogin(cookieInput.value)
         cookieInput.value = ''
-        await loadAvatar()
-        await openEntry(entries.value[0])
       } catch (err) {
         setError(err)
       } finally {
@@ -221,10 +260,39 @@ export default {
       }
     }
 
+    // 应用内打开官方登录页，用户在页面里用手机号 / 验证码 / 扫码登录
+    const handleWebLogin = async() => {
+      if (webLoggingIn.value) return
+      webLoggingIn.value = true
+      error.value = ''
+      try {
+        const meta = platformMeta.value
+        const cookie = await rendererInvoke(MOD_LOGIN_EVENT.open, {
+          platform: platform.value,
+          url: meta.loginUrl,
+          match: meta.loginMatch,
+          hosts: meta.loginHosts,
+          title: `登录${meta.name}`,
+          mobile: Boolean(meta.loginMobile),
+          autoClickLogin: Boolean(meta.loginAutoClick),
+          ...(meta.loginSize || {}),
+        })
+        // null 表示用户关掉了登录窗口
+        if (!cookie) return
+        await saveLogin(cookie)
+      } catch (err) {
+        setError(err)
+      } finally {
+        webLoggingIn.value = false
+      }
+    }
+
     const handleLogout = () => {
       if (platform.value == 'wy') wy.logout()
       else if (platform.value == 'tx') tx.logout()
       else kg.logout()
+      // 独立 session 里还留着登录态，不清掉的话下次打开登录窗会直接是已登录
+      rendererInvoke(MOD_LOGIN_EVENT.logout, platform.value).catch(() => {})
       songs.value = []
       cards.value = []
       avatar.value = ''
@@ -375,6 +443,7 @@ export default {
     return {
       cookieInput,
       loggingIn,
+      webLoggingIn,
       platform,
       platforms,
       platformName,
@@ -393,6 +462,7 @@ export default {
       playingId,
       currentTitle,
       handleLogin,
+      handleWebLogin,
       handleLogout,
       switchPlatform,
       openEntry,

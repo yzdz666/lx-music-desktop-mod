@@ -201,6 +201,7 @@ export default class FontPlayer {
   _handlePlayMaxFontNum() {
     let curFont = this.fonts[this.curFontNum]
     // console.log(curFont.text)
+    if (!curFont) return
     const currentTime = this._currentTime()
     const driftTime = currentTime - curFont.startTime
     if (currentTime > curFont.startTime + curFont.time) {
@@ -243,6 +244,7 @@ export default class FontPlayer {
   }
 
   _handlePauseFont(font) {
+    if (!font?.animation) return
     if (font.animation.playState == 'running') font.animation.pause()
   }
 
@@ -252,6 +254,7 @@ export default class FontPlayer {
     if (this.curFontNum >= this.maxFontNum) return this._handlePlayMaxFontNum()
     let curFont = this.fonts[this.curFontNum]
     // console.log(curFont, nextFont, this.curFontNum, this.maxFontNum)
+    if (!curFont) return
     const currentTime = this._currentTime()
     // console.log(curFont.text)
     const driftTime = currentTime - curFont.startTime
@@ -296,7 +299,7 @@ export default class FontPlayer {
 
   play(curTime = 0) {
     // console.log('play', curTime)
-    if (!this.fonts.length) return
+    if (!this.fonts?.length) return
     this.pause()
 
     if (this.isLineMode) return this._handlePlayLine(true)
@@ -327,7 +330,9 @@ export default class FontPlayer {
     this.timeoutTools.clear()
     this.waitPlayTimeout.clear()
     this._handlePauseFont(this.fonts[this.curFontNum])
-    if (this.curFontNum === this.maxLine) return
+    // 原来写的是 this.maxLine（FontPlayer 没这个字段，恒为 undefined），
+    // 导致停在最后一个字时仍会继续跑下面的补齐逻辑
+    if (this.curFontNum === this.maxFontNum) return
     const curFontNum = this._findcurFontNum(this._currentTime())
     if (this.curFontNum === curFontNum) return
     for (let i = 0; i < this.curFontNum; i++) this._handlePlayFont(this.fonts[i], 0, true)
@@ -347,7 +352,8 @@ export default class FontPlayer {
 
   setPlaybackRate(rate) {
     this._rate = rate
-    if (!this.lines.length) return
+    // 原来判断的是 this.lines（FontPlayer 没有这个字段），一拍到空数组就抛 undefined.length
+    if (!this.fonts?.length) return
     if (!this.isPlay) return
     this.play(this._currentTime())
   }

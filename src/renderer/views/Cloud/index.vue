@@ -11,7 +11,7 @@
     <div v-if="tab == 'wy'" :class="$style.bodyColumn">
       <div v-if="!loggedIn" :class="$style.loginBox">
         <h3>网易云云盘需要先登录</h3>
-        <p :class="$style.hint">先到「我的音乐」里粘贴 Cookie 登录，再回到这里刷新即可看到云盘歌曲。</p>
+        <p :class="$style.hint">先到「我的音乐」里用手机号 / 扫码登录，再回到这里刷新即可看到云盘歌曲。</p>
         <button :class="$style.primaryBtn" @click="$router.push('/mine')">去登录</button>
       </div>
       <template v-else>

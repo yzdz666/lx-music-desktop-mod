@@ -10,12 +10,15 @@ const defaults = {
   wyUid: '',
   wyNickname: '',
   wyAvatar: '',
+  wyVipType: 0,
   // QQ 音乐账号
   txCookie: '',
+  txUid: '',
   txNickname: '',
   txAvatar: '',
   // 酷狗账号
   kgCookie: '',
+  kgUid: '',
   kgNickname: '',
   kgAvatar: '',
   // 一起听

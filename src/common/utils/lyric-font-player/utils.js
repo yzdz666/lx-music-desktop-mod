@@ -15,6 +15,8 @@ export class TimeoutTools {
   run() {
     this.animationFrameId = this.nextTick(() => {
       this.animationFrameId = null
+      // 链被 clear() 之后仍可能有已入队的回调跑进来，回调没了就直接退出
+      if (typeof this.callback !== 'function') return
       let diff = this.invokeTime - getNow()
       // console.log('diff', diff)
       if (diff > 0) {
@@ -33,6 +35,8 @@ export class TimeoutTools {
 
   start(callback = () => {}, timeout = 0) {
     // console.log(timeout)
+    // 起新链前先清旧链，避免上一轮已入队的 rAF 在切歌后继续跑
+    this.clear()
     this.callback = callback
     this.invokeTime = getNow() + timeout
 
@@ -48,6 +52,7 @@ export class TimeoutTools {
       window.clearTimeout(this.timeoutId)
       this.timeoutId = null
     }
+    this.callback = null
   }
 }
 

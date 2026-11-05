@@ -75,7 +75,7 @@ material-modal(:show="versionInfo.showModal" max-width="60%" @close="handleClose
         p 发现有新版本啦，点击「去下载新版本」打开二改版下载页。
         p 下载后直接覆盖安装即可，歌单、设置、账号都会保留。
         p 若遇到问题可以阅读
-          strong.hover.underline(aria-label="点击打开" @click="handleOpenUrl('https://lyswhut.github.io/lx-music-doc/desktop/faq')") 桌面版常见问题
+          strong.hover.underline(aria-label="点击打开" @click="handleOpenUrl(MOD_DESKTOP_URL)") 二改版说明
           | 。
       div(:class="$style.btns")
         base-btn(:class="$style.btn2" @click="handleIgnoreClick") {{ isIgnored ? '取消忽略' : '忽略更新该版本' }}

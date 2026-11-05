@@ -66,47 +66,58 @@ export default class Lyric {
   }
 
   _handleLinePlayerOnPlay = (num, text, curTime) => {
+    // 这里可能由上一首歌遗留的定时器回调触发，_lineFonts 可能已经重建/清空
+    const fonts = this._lineFonts ?? []
     if (this.isLineMode) {
       if (num < this.playingLineNum + 1) {
         for (let i = this.playingLineNum, minNum = Math.max(num, 0) - 1; i > minNum; i--) {
-          const font = this._lineFonts[i]
+          const font = fonts[i]
+          if (!font) continue
           font.reset()
           font.lineContent.classList.remove(this.activeLineClassName)
         }
       } else if (num > this.playingLineNum) {
         for (let i = Math.max(this.playingLineNum, 0); i < num; i++) {
-          const font = this._lineFonts[i]
+          const font = fonts[i]
+          if (!font) continue
           font.reset()
           font.lineContent.classList.remove(this.activeLineClassName)
         }
       } else if (this.playingLineNum > -1) {
-        const font = this._lineFonts[this.playingLineNum]
-        font.reset()
-        font.lineContent.classList.remove(this.activeLineClassName)
+        const font = fonts[this.playingLineNum]
+        if (font) {
+          font.reset()
+          font.lineContent.classList.remove(this.activeLineClassName)
+        }
       }
     } else {
       if (num < this.playingLineNum + 1) {
         for (let i = this.playingLineNum, minNum = Math.max(num, 0) - 1; i > minNum; i--) {
-          const font = this._lineFonts[i]
+          const font = fonts[i]
+          if (!font) continue
           font.lineContent.classList.remove(this.activeLineClassName)
           font.reset()
         }
       } else if (num > this.playingLineNum) {
         for (let i = Math.max(this.playingLineNum, 0); i < num; i++) {
-          const font = this._lineFonts[i]
+          const font = fonts[i]
+          if (!font) continue
           font.lineContent.classList.remove(this.activeLineClassName)
           font.finish()
         }
       } else if (this.playingLineNum > -1) {
-        const font = this._lineFonts[this.playingLineNum]
-        font.lineContent.classList.remove(this.activeLineClassName)
+        const font = fonts[this.playingLineNum]
+        if (font) font.lineContent.classList.remove(this.activeLineClassName)
       }
     }
     this.playingLineNum = num
     if (num > -1) {
-      const font = this._lineFonts[num]
-      font.lineContent.classList.add(this.activeLineClassName)
-      font.play(curTime - this._lines[num].time)
+      // 定时器回调可能在切歌、清空歌词之后才执行，此时 _lineFonts 已经重建或为空
+      const font = fonts[num]
+      if (font) {
+        font.lineContent.classList.add(this.activeLineClassName)
+        font.play(curTime - this._lines[num].time)
+      }
     }
     this.onPlay(num, this._lines[num]?.text ?? '')
   }
@@ -194,7 +205,7 @@ export default class Lyric {
   pause() {
     if (!this.linePlayer) return
     this.linePlayer.pause()
-    if (this.playingLineNum > -1) this._lineFonts[this.playingLineNum]?.pause()
+    if (this.playingLineNum > -1) this._lineFonts?.[this.playingLineNum]?.pause()
   }
 
   setOffset(offset) {

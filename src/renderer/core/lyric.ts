@@ -177,6 +177,9 @@ export const setLyric = () => {
         lxlrc: musicInfo.lxlrc,
       },
     })
+  } else {
+    // 切到无歌词的歌时不调用 setLyric，行数据会一直停在上一边（上一首播完的歌词继续推进）
+    lrc.setLyric('', [])
   }
 
   if (isPlay.value) {

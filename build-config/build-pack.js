@@ -53,6 +53,9 @@ const options = {
     },
   ],
 }
+
+// 沙箱/内网环境直连 GitHub 下载 electron 会超时，允许指向本地已解压的 electron 目录
+if (process.env.LX_ELECTRON_DIST) options.electronDist = process.env.LX_ELECTRON_DIST
 /**
  * @type {import('electron-builder').Configuration}
  * @see https://www.electron.build/configuration/configuration

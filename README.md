@@ -28,16 +28,16 @@
 - **一起听** —— 与手机版同一协议、同一房间，手机电脑同房
 - **平台设置** —— 音源音质测试、三平台账号、自定义主题背景、听歌播报、关于与检查更新
 
-当前版本 **1.1.2**，功能对齐手机版 **v1.22.35**。
+当前版本 **1.1.3**，功能对齐手机版 **v1.22.36**。
 
 ## 下载
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.2-win-x64-Setup.exe` | Windows 10/11 x64 | 115.5 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.2-win-x64-green.7z` | Windows 10/11 x64 | 95.0 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.2-linux-x64.tar.gz` | Linux x64 | 126.1 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.1-linux-x64/lx-music-desktop` |
-| `lxmod-desktop-src-v1.1.2.zip` | 源码 | 约 13 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.3-win-x64-Setup.exe` | Windows 10/11 x64 | 115.5 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.3-win-x64-green.7z` | Windows 10/11 x64 | 95.0 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.3-linux-x64.tar.gz` | Linux x64 | 126.1 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.3-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.3.zip` | 源码 | 约 13 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
 <https://aa9247f7339b2cb18.app.workbuddy.host/desktop.html?sharecode=ER6OKBO4HG>
@@ -85,6 +85,8 @@
 | QQ 音乐 | 每日推荐、猜你喜欢、新歌、我喜欢的、我的歌单、收藏歌单、推荐歌单（7） |
 | 酷狗 | 我喜欢的、我的歌单、推荐歌单（3） |
 
+登录与手机版同一套逻辑：点「打开登录窗口（手机号 / 扫码）」会在应用内用独立 session 打开官方登录页，输入手机号 + 验证码（或扫码）后自动读取 Cookie 落库，登录成功窗口自动关闭；退出登录会一并清掉该 session。原来的「粘贴 Cookie」保留在折叠区，登录窗口打不开时仍可用。
+
 请求走 Node 原生 `https`（`src/renderer/core/mod/http.js`），不受浏览器 CORS 限制；网易云走 weapi 加密（AES-128-CBC + RSA NoPadding），QQ 走 `musicu.fcg`，酷狗走 web 签名。
 
 ### 云盘与本地音乐
@@ -104,7 +106,7 @@
 
 ### 平台设置
 
-左侧栏「平台设置」，五块内容：播放音质 8 档单选与音源平台一览、音源音质测试（按 `TRY_QUALITYS` 逐档取链）、三平台账号状态、外观与播报（自定义主题背景、TTS 听歌播报 + 语速 + 试听）、关于（主页 / 下载页 / 源码 / 检查更新）。
+左侧栏「平台设置」，五块内容：播放音质 8 档单选与音源平台一览、音源音质测试（按 `TRY_QUALITYS` 逐档取链）、三平台账号状态、外观与播报（自定义主题背景、TTS 听歌播报 + 语速 + 试听）、关于（免费说明 / 官方项目地址 / 赞助码 / 注意事项 / 许可协议，版式与手机版一致）。
 
 ## 与手机版对照
 
@@ -157,6 +159,42 @@ doc/mod-desktop.md                       二改说明（功能、实现、验证
 - 桌面版与手机版数据不互通（歌单 / 设置各自独立）
 
 ## 更新日志
+
+### 1.1.3（2026-11-05）
+
+**修复：切歌时的歌词定时器崩溃**
+
+和手机版 1.22.36 同一个根因。`lyric-font-player` 的 `TimeoutTools` 是模块级单例，`clear()` 取消不掉已经入队的 rAF 回调；`LinePlayer.pause()` 里还有一句 `if (!this.isPlay) return`，状态先被置 false 时整条链就没被清掉。切歌 `setLyric('')` 之后，孤儿回调继续跑，撞上已经重建的 `_lineFonts` / `lines`。
+
+桌面版上表现为三种：
+
+- 还没 `setLyric` 过就直接播放，`TypeError: Cannot read properties of null (reading 'length')` —— `LinePlayer.play()` 里 `this.lines` 是 `null`
+- 首句未到 / 播放中改倍速，`FontPlayer.pause()` 里 `this.fonts[-1]` 取到 `undefined`
+- 切到无歌词的歌后，上一首的歌词继续推进（`setLyric()` 里 `if (musicInfo.lrc)` 不成立就什么都不做）
+
+修复：`TimeoutTools.start()` 起新链前先 `clear()`、`run()` 回调判空、`clear()` 置空回调；`LinePlayer` / `FontPlayer` 所有数组取值加边界判断；`FontPlayer.pause()` 里写错的 `this.maxLine`（该字段不存在，恒为 `undefined`）改为 `maxFontNum`；`core/lyric.ts` 在无歌词时显式 `setLyric('', [])`。
+
+验证：Node + DOM stub 复现脚本，修复前 2 个场景必崩，修复后 0 崩溃；8 项回归全过（逐行 / 逐字推进、pause 停止、resync 跳行、切歌重推、offset 偏移、播完停最后一行、stop 后再 play）。
+
+**新增：三平台手机号登录**
+
+「我的音乐」不再只能 F12 复制 Cookie。点「打开登录窗口（手机号 / 扫码）」会用独立 session 的 `BrowserWindow` 打开官方登录页，与手机版 `WebLoginModal` 同一套地址和判定规则：
+
+| 平台 | 登录页 | 登录标记 |
+| --- | --- | --- |
+| 网易云 | `music.163.com/m/login` | `MUSIC_U` |
+| QQ 音乐 | `y.qq.com` | `qm_keyst` / `qqmusic_key` / `musickey` |
+| 酷狗 | `www.kugou.com` | `KuGoo` / `kg_music` |
+
+登录成功后自动读 Cookie 落库并关窗；退出登录会清掉独立 session，避免下次打开直接是已登录状态。粘贴 Cookie 保留在折叠区作兜底。
+
+**关于页改成手机版版式**
+
+免费说明 → 官方项目地址 → 赞助（内嵌二维码）→ 注意事项 → 许可协议，去掉了原来一长串上游 FAQ / 上游仓库跳转。
+
+**许可协议与更新弹窗的链接**
+
+Apache 许可证原文、开源地址、「桌面版常见问题」全部改到本仓库，不再指向洛雪上游。
 
 ### 1.1.2（2026-11-05）
 

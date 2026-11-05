@@ -5,68 +5,57 @@ dd
     strong LX Mod 桌面版 v{{ modVersion }}
     | &nbsp;· 二改作者：
     strong {{ modAuthor }}
-    | （QQ {{ modQQ }}）
   .p.small
-    | 二改新增：我的音乐（网易云 / QQ / 酷狗）、云盘（网易云 + WebDAV）、本地音乐、一起听（含网页版）、平台设置、全音质支持。
-  .p.small
-    | 二改版主页：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modHomeUrl)") {{ modHomeUrl }}
-  .p.small
-    | 电脑版下载 / 源码：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modDesktopUrl)") {{ modDesktopUrl }}
-  .p.small
-    | 二改源码仓库（本程序）：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modGithubApp)") {{ modGithubApp }}
-  .p.small
-    | 手机版二改源码仓库：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modGithubMobile)") {{ modGithubMobile }}
-  br
-  .p.small
-    | 本软件完全免费，代码已开源。上游项目地址：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl('https://github.com/lyswhut/lx-music-desktop#readme')") https://github.com/lyswhut/lx-music-desktop
-  .p.small
-    | 桌面版最新安装包 / 更新日志：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modReleasesUrl)") {{ modReleasesUrl }}
-  .p.small
-    | 二改版安装说明：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modDesktopUrl)") {{ modDesktopUrl }}
-  .p.small
-    | 上游功能的常见问题可转至：
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl('https://lyswhut.github.io/lx-music-doc/desktop/faq')") 桌面版常见问题
-  .p.small
-    strong 本软件没有客服
-    | ，遇到问题请先看上面的二改版说明。
-  .p.small
-    | 仍有问题可到&nbsp;GitHub&nbsp;
-    span.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl(modGithubIssues)") 提交&nbsp;Issue
-    | （二改版问题请提到二改仓库）。
-  br
-  .p.small 由于软件开发的初衷仅是为了对新技术的学习与研究，因此软件直至停止维护都将会一直保持纯净。
-  .p.small
-    | 目前本项目的原始发布地址
-    strong 只有&nbsp;GitHub
-    | ，其他渠道均为第三方转载发布，可信度请自行鉴别。
-  .p.small
-    strong 本项目没有微信公众号之类的所谓「官方账号」，谨防被骗！
+    | 本软件完全免费。
 
+dd
+  .p.small 官方项目地址：
+  .p.small
+    span.link(:aria-label="$t('setting__click_open')" @click="openUrl(modGithubApp)") {{ modGithubApp }}
+
+dd
+  .p.small 如果本软件对你有所帮助，欢迎通过赞助支持项目的持续开发与维护。
+  .p.small 感谢每一位支持本软件的用户。
+
+dd
+  h3 赞助项目
+  div.sponsor
+    .sponsorCard
+      img.sponsorImg(:src="sponsorImage" alt="赞助码")
+    .p.small.sponsorCaption 月下独酌版 赞助码
+
+dd
+  h3 注意事项
+  div
+    .p.small 本项目仅在 GitHub 与内部测试群进行开发、测试与信息交流，未在任何频道、群组、公众号、网站或平台进行官方推广、宣传或发布。
+    .p.small 本项目不存在任何付费功能，也不会通过付费、充值、会员等方式限制软件功能，更不会把随处可见的东西包装成所谓「高级功能」进行收费。
+
+dd
   .p.small
     | 你已签署本软件的
     base-btn(min @click="handleShowPact") 许可协议
-    | ，协议的在线版本在
-    strong.hover.underline(:aria-label="$t('setting__click_open')" @click="openUrl('https://github.com/lyswhut/lx-music-desktop#%E9%A1%B9%E7%9B%AE%E5%8D%8F%E8%AE%AE')") 这里
     | 。
+  .p.small
+    | 协议在线版本：
+    span.link(:aria-label="$t('setting__click_open')" @click="openUrl(modGithubApp)") {{ modGithubApp }}
+  .p.small
+    | 二改主页：
+    span.link(:aria-label="$t('setting__click_open')" @click="openUrl(modDesktopUrl)") {{ modDesktopUrl }}
   br
-
+  .p.small
+    | 本软件基于洛雪音乐（LX Music）二次开发，遵循 Apache License 2.0。
   .p.small
     | By:&nbsp;
     strong 落雪无痕
+    | &nbsp;· 二改：&nbsp;
+    strong {{ modAuthor }}
 </template>
 
 <script>
-// import { ref, onBeforeUnmount } from '@common/utils/vueTools'
 import { isShowPact } from '@renderer/store'
-import { openUrl, clipboardWriteText } from '@common/utils/electron'
-import { MOD_VERSION, MOD_AUTHOR, MOD_QQ, MOD_HOME_URL, MOD_DESKTOP_URL, MOD_GITHUB_APP, MOD_GITHUB_MOBILE, MOD_RELEASES_URL } from '@renderer/core/mod/meta'
+import { openUrl } from '@common/utils/electron'
+import { MOD_VERSION, MOD_AUTHOR, MOD_DESKTOP_URL, MOD_GITHUB_APP } from '@renderer/core/mod/meta'
+import sponsorImage from '@renderer/assets/images/sponsor.png'
 
 export default {
   name: 'SettingAbout',
@@ -76,18 +65,45 @@ export default {
     }
     return {
       openUrl,
-      clipboardWriteText,
       handleShowPact,
+      sponsorImage,
       modVersion: MOD_VERSION,
       modAuthor: MOD_AUTHOR,
-      modQQ: MOD_QQ,
-      modHomeUrl: MOD_HOME_URL,
-      modDesktopUrl: MOD_DESKTOP_URL,
       modGithubApp: MOD_GITHUB_APP,
-      modGithubMobile: MOD_GITHUB_MOBILE,
-      modGithubIssues: `${MOD_GITHUB_APP}/issues`,
-      modReleasesUrl: MOD_RELEASES_URL,
+      modDesktopUrl: MOD_DESKTOP_URL,
     }
   },
 }
 </script>
+
+<style lang="less" module>
+.sponsor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.sponsorCard {
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--color-border, rgba(128, 128, 128, .28));
+  border-radius: 10px;
+  line-height: 0;
+}
+.sponsorImg {
+  display: block;
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.sponsorCaption {
+  margin-top: 6px;
+  color: var(--color-font-label);
+}
+.link {
+  color: var(--color-primary);
+  cursor: pointer;
+  word-break: break-all;
+  &:hover { text-decoration: underline; }
+}
+</style>
