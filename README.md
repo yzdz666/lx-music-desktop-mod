@@ -34,10 +34,10 @@
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.3-win-x64-Setup.exe` | Windows 10/11 x64 | 115.5 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.3-win-x64-green.7z` | Windows 10/11 x64 | 95.0 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.3-linux-x64.tar.gz` | Linux x64 | 126.1 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.3-linux-x64/lx-music-desktop` |
-| `lxmod-desktop-src-v1.1.3.zip` | 源码 | 约 13 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.3-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.3-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.3-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.3-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.3.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
 <https://aa9247f7339b2cb18.app.workbuddy.host/desktop.html?sharecode=ER6OKBO4HG>
