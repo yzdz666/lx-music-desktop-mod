@@ -1,26 +1,19 @@
 import { httpGet } from './request'
-import pkg from '../../../package.json'
 
-// TODO add Notice
-
-const author = pkg.author.name
-const name = pkg.name
-
+// 二改版自己的更新清单，不再读上游 lyswhut 的版本信息。
+// 主站分享网关要求带 sharecode：应用内请求没有浏览器 cookie，不带会被挡在「链接不完整」页。
+// 备用源用 GitHub Release 的 latest/download 永久直链；它会 302 到 CDN，
+// 而 needle 默认 follow_max=0 不跟随重定向，所以在 request 里显式放行。
 const address = [
-  [`https://raw.githubusercontent.com/${author}/${name}/master/publish/version.json`, 'direct'],
-  ['https://registry.npmjs.org/lx-music-desktop-version-info/latest', 'npm'],
-  [`https://cdn.jsdelivr.net/gh/${author}/${name}/publish/version.json`, 'direct'],
-  [`https://fastly.jsdelivr.net/gh/${author}/${name}/publish/version.json`, 'direct'],
-  [`https://gcore.jsdelivr.net/gh/${author}/${name}/publish/version.json`, 'direct'],
-  ['https://registry.npmmirror.com/lx-music-desktop-version-info/latest', 'npm'],
-  ['https://gitee.com/lyswhut/lx-music-desktop-versions/raw/master/version.json', 'direct'],
-  ['http://cdn.stsky.cn/lx-music/desktop/version.json', 'direct'],
+  ['https://aa9247f7339b2cb18.app.workbuddy.host/downloads/desktop-version.json?sharecode=ER6OKBO4HG', 'direct'],
+  ['https://github.com/yzdz666/lx-music-desktop-mod/releases/latest/download/desktop-version.json', 'direct'],
 ]
 
 const request = async(url, retryNum = 0) => {
   return new Promise((resolve, reject) => {
     httpGet(url, {
       timeout: 10000,
+      follow_max: 5,
     }, (err, resp, body) => {
       if (err || resp.statusCode != 200) {
         ++retryNum >= 3

@@ -44,6 +44,8 @@
 
 > 安装包没有购买代码签名证书，Windows 首次运行可能提示「已保护你的电脑」，点「更多信息」→「仍要运行」即可。介意的话先用绿色版。
 
+应用内「检查更新」读的是自建清单 [`desktop-version.json`](https://aa9247f7339b2cb18.app.workbuddy.host/downloads/desktop-version.json?sharecode=ER6OKBO4HG)，主站取不到时自动回退到本仓库 Release 的 `latest/download`。不会再拉官方版本信息，也就不会出现「点了更新装回洛雪官方版、二改功能全丢」的情况。
+
 ## 装完必做两步
 
 **1. 导入音源脚本。** 桌面版和手机版一样不内置音源，不导入就没有声音：
