@@ -2,11 +2,14 @@ import { compareVer } from '@common/utils'
 import { httpGet } from './request'
 
 // 二改版自己的更新清单，不再读上游 lyswhut 的版本信息。
-// 主站分享网关要求带 sharecode：应用内请求没有浏览器 cookie，不带会被挡在「链接不完整」页。
+// 主源与手机版共用同一个下载站（af384…），页面和 downloads/desktop-version.json 都在这里，
+// 发版时能一起改；早期的电脑版专用站 aa9247… 已弃用（站点在别的环境，清单会一直停住，
+// 会出现「提示有新版本、点下载还是旧包」）。
+// 分享网关要求带 sharecode：应用内请求没有浏览器 cookie，不带会被挡在「链接不完整」页。
 // 备用源用 GitHub Release 的 latest/download 永久直链；它会 302 到 CDN，
 // 而 needle 默认 follow_max=0 不跟随重定向，所以在 request 里显式放行。
 const address = [
-  ['https://aa9247f7339b2cb18.app.workbuddy.host/downloads/desktop-version.json?sharecode=ER6OKBO4HG', 'direct'],
+  ['https://af384ee6deb6e09e2.app.workbuddy.host/downloads/desktop-version.json?sharecode=MKPWEVLBUS', 'direct'],
   ['https://github.com/yzdz666/lx-music-desktop-mod/releases/latest/download/desktop-version.json', 'direct'],
 ]
 

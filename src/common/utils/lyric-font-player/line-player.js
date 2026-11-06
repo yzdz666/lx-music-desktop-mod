@@ -15,11 +15,19 @@ const timeoutTools = new TimeoutTools()
 
 const t_rxp_1 = /^0+(\d+)/
 const t_rxp_2 = /:0+(\d+)/g
-const t_rxp_3 = /\.0+(\d+)/
+// 注意：这里刻意不再剥离小数位开头的 0。
+// 原先的 /\.0+(\d+)/ 会把 [00:00.06] 变成 .6，再按「不足 3 位右补 0」
+// 补成 600ms（正确是 60ms）—— 落在 0.01~0.09 秒的歌词会整体推迟最多 900ms，
+// 表现为「桌面歌词卡在某句（常见于 词:xx / 曲:xx 这种 0.0x 打轴），
+// 等下一句才同步」。小数位统一补到 3 位，同时保证不同精度的行能匹配上。
 const formatTimeLabel = (label) => {
-  return label.replace(t_rxp_1, '$1')
-    .replace(t_rxp_2, ':$1')
-    .replace(t_rxp_3, '.$1')
+  const normalized = label.replace(t_rxp_1, '$1').replace(t_rxp_2, ':$1')
+  const dot = normalized.lastIndexOf('.')
+  if (dot < 0) return `${normalized}.000`
+  let frac = normalized.slice(dot + 1)
+  if (frac.length > 3) frac = frac.slice(0, 3)
+  while (frac.length < 3) frac += '0'
+  return `${normalized.slice(0, dot + 1)}${frac}`
 }
 
 const parseExtendedLyric = (lrcLinesMap, extendedLyric) => {

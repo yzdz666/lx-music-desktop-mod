@@ -28,23 +28,23 @@
 - **一起听** —— 与手机版同一协议、同一房间，手机电脑同房
 - **平台设置** —— 音源音质测试、三平台账号、自定义主题背景、听歌播报、关于与检查更新
 
-当前版本 **1.1.3**，功能对齐手机版 **v1.22.36**。
+当前版本 **1.1.4**，功能对齐手机版 **v1.22.37**。
 
 ## 下载
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.3-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.3-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.3-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.3-linux-x64/lx-music-desktop` |
-| `lxmod-desktop-src-v1.1.3.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.4-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.4-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.4-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.4-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.4.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
-<https://aa9247f7339b2cb18.app.workbuddy.host/desktop.html?sharecode=ER6OKBO4HG>
+<https://af384ee6deb6e09e2.app.workbuddy.host/desktop.html?sharecode=MKPWEVLBUS>
 
 > 安装包没有购买代码签名证书，Windows 首次运行可能提示「已保护你的电脑」，点「更多信息」→「仍要运行」即可。介意的话先用绿色版。
 
-应用内「检查更新」读的是自建清单 [`desktop-version.json`](https://aa9247f7339b2cb18.app.workbuddy.host/downloads/desktop-version.json?sharecode=ER6OKBO4HG)，主站取不到时自动回退到本仓库 Release 的 `latest/download`。不会再拉官方版本信息，也就不会出现「点了更新装回洛雪官方版、二改功能全丢」的情况。
+应用内「检查更新」读的是自建清单 [`desktop-version.json`](https://af384ee6deb6e09e2.app.workbuddy.host/downloads/desktop-version.json?sharecode=MKPWEVLBUS)，主站取不到时自动回退到本仓库 Release 的 `latest/download`。不会再拉官方版本信息，也就不会出现「点了更新装回洛雪官方版、二改功能全丢」的情况。
 
 > **1.1.1 起不再内置自动下载更新。** 点「去下载新版本」直接打开下载页，下载后覆盖安装即可（歌单、设置、账号都保留）。旧版内置的 electron-updater 按「安装包版本 + 上游 latest.yml」判断，既没有为每个版本发布 latest.yml，历史 publish 又指向上游仓库，一旦触发就会装回官方版，因此整条链路已移除。
 
@@ -159,6 +159,20 @@ doc/mod-desktop.md                       二改说明（功能、实现、验证
 - 桌面版与手机版数据不互通（歌单 / 设置各自独立）
 
 ## 更新日志
+
+### 1.1.4（2026-11-06）
+
+**修复：桌面歌词卡在「词:xxx」那一句，要等下一句才跳**
+
+和手机版 1.22.37 同一个根因。`line-player.js` 的 `formatTimeLabel` 里有一条 `/\.0+(\d+)/`，会把歌词小数位开头的 0 剥掉：
+
+```
+[00:00.06]  ->  .6  ->  按不足 3 位右补 0  ->  600ms
+```
+
+正确值是 60ms，整整推迟 10 倍。落在 `0.01`～`0.09` 秒的歌词行会整体错位，制作信息（`词:xx` / `曲:xx` 常打在 0.06 秒）会一直占到下一句正文，悬浮窗看起来就是「卡在词那里，后面一句才同步上」。`[00:01.05]` 还会算成 1500ms，和 `[00:01.5]` 撞行，后一句被当成翻译行吞掉。
+
+修复：小数位不再剥离开头的 0，统一补到 3 位；App 内歌词与桌面歌词窗口共用这份解析，两个窗口一起修好。
 
 ### 1.1.3（2026-11-05）
 
