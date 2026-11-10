@@ -28,16 +28,16 @@
 - **一起听** —— 与手机版同一协议、同一房间，手机电脑同房
 - **平台设置** —— 音源音质测试、三平台账号、自定义主题背景、听歌播报、关于与检查更新
 
-当前版本 **1.1.4**，功能对齐手机版 **v1.22.37**。
+当前版本 **1.1.5**，功能对齐手机版 **v1.22.38**。
 
 ## 下载
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.4-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.4-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.4-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.4-linux-x64/lx-music-desktop` |
-| `lxmod-desktop-src-v1.1.4.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.5-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.5-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.5-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.5-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.5.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
 <https://af384ee6deb6e09e2.app.workbuddy.host/desktop.html?sharecode=MKPWEVLBUS>
@@ -159,6 +159,12 @@ doc/mod-desktop.md                       二改说明（功能、实现、验证
 - 桌面版与手机版数据不互通（歌单 / 设置各自独立）
 
 ## 更新日志
+
+### 1.1.5（2026-11-10）
+
+- **三端云同步**：与手机版共用同一个同步空间，按歌单 / 设置项增量合并。删除带墓碑，两台设备同时改按修改时间决胜；设置只同步跨端有意义的部分（音源、播放方式、逐字歌词样式），窗口尺寸 / 音量 / 桌面歌词坐标留在本机
+- **听歌报告**：本机统计听歌时长、播放次数、Top 歌曲 / 歌手、音源分布、24 小时时段分布与连续天数；满 30 秒才算一次有效播放，数据不出本机
+- **翻译里的 `//` 占位不再当译文**：手机版解析库补了过滤，两端行为统一
 
 ### 1.1.4（2026-11-06）
 

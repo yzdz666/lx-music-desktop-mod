@@ -670,6 +670,31 @@ declare global {
        */
       'sync.client.host': string
 
+      /**
+       * 二改：三端云同步服务地址
+       */
+      'sync.cloudUrl': string
+
+      /**
+       * 二改：同步码（多设备填同一个）
+       */
+      'sync.cloudCode': string
+
+      /**
+       * 二改：同步密钥
+       */
+      'sync.cloudSecret': string
+
+      /**
+       * 二改：自动同步开关
+       */
+      'sync.cloudAuto': 'off' | 'on'
+
+      /**
+       * 二改：上次同步完成时间
+       */
+      'sync.cloudLastAt': number
+
 
       /**
        * 是否启用开放API服务

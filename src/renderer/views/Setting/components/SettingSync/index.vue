@@ -16,6 +16,8 @@ dd
 SyncClient(v-if="sync.mode == 'client'")
 SyncServer(v-else)
 
+CloudSync
+
 </template>
 
 <script>
@@ -25,12 +27,14 @@ import { openUrl } from '@common/utils/electron'
 import { appSetting, updateSetting } from '@renderer/store/setting'
 import SyncServer from './SyncServer.vue'
 import SyncClient from './SyncClient.vue'
+import CloudSync from './CloudSync.vue'
 
 export default {
   name: 'SettingSync',
   components: {
     SyncServer,
     SyncClient,
+    CloudSync,
   },
   setup() {
     return {

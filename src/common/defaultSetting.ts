@@ -148,6 +148,13 @@ const defaultSetting: LX.AppSetting = {
   'sync.server.maxSsnapshotNum': 5,
   'sync.client.host': '',
 
+  // 二改：三端云同步（歌单 / 少量跨端设置），与官方 sync 服务互不影响
+  'sync.cloudUrl': 'https://af384ee6deb6e09e2.app.workbuddy.host/api/sync?sharecode=MKPWEVLBUS',
+  'sync.cloudCode': '',
+  'sync.cloudSecret': '',
+  'sync.cloudAuto': 'off',
+  'sync.cloudLastAt': 0,
+
   'openAPI.enable': false,
   'openAPI.port': '23330',
   'openAPI.bindLan': false,

@@ -16,6 +16,8 @@ import useSettingSync from './useSettingSync'
 import { useRouter } from '@common/utils/vueRouter'
 import handleListAutoUpdate from './listAutoUpdate'
 import { initSongNotify } from '@renderer/core/mod/songNotify'
+import { initCloudAutoSync } from '@renderer/core/mod/cloudSync'
+import { initPlayStats } from '@renderer/core/mod/playStats'
 
 
 export default () => {
@@ -70,6 +72,8 @@ export default () => {
       void initOpenAPI()
       void initStatusbarLyric()
       initSongNotify()
+      initPlayStats()
+      initCloudAutoSync()
       sendInited()
 
       handleListAutoUpdate()
