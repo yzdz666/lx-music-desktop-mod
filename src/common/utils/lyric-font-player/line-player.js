@@ -45,7 +45,9 @@ const parseExtendedLyric = (lrcLinesMap, extendedLyric) => {
         for (let time of times) {
           const timeStr = formatTimeLabel(time)
           const targetLine = lrcLinesMap[timeStr]
-          if (targetLine) targetLine.extendedLyrics.push(text)
+          // 译文与正文相同（翻译文件常直接复制原文）、或同一句已挂过时不再追加，
+          // 否则桌面歌词 extendedLyrics.join('\n') 会把一句歌词显示成两行
+          if (targetLine && targetLine.text !== text && !targetLine.extendedLyrics.includes(text)) targetLine.extendedLyrics.push(text)
         }
       }
     }
@@ -106,7 +108,8 @@ export default class LinePlayer {
           for (let time of times) {
             const timeStr = formatTimeLabel(time)
             if (linesMap[timeStr]) {
-              linesMap[timeStr].extendedLyrics.push(text)
+              // 同一时间戳重复打了同一句（[00:12.00][00:12.00]词）时不要当译文重复挂载
+              if (linesMap[timeStr].text !== text) linesMap[timeStr].extendedLyrics.push(text)
               continue
             }
             const timeArr = timeStr.split(':')

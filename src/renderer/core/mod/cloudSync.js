@@ -99,10 +99,21 @@ export const getSyncConfig = () => ({
   secret: (appSetting['sync.cloudSecret'] || '').trim(),
 })
 
+/**
+ * 把配置里的基地址拼成具体接口。
+ *
+ * 基地址自带查询串（默认 `/api/sync?sharecode=xxx`），action 必须插在 path
+ * 末尾。接在整串后面会拼成 `/api/sync?sharecode=xxx/create`，网关拿到的
+ * sharecode 是 `xxx/create`，校验失败回 403（HTML），客户端只看到「非 JSON」。
+ */
 const buildUrl = (base, action) => {
-  const trimmed = base.replace(/\/+$/, '')
-  const sep = trimmed.includes('?') ? '&' : '?'
-  return `${trimmed}/${action}${sep}_=${Date.now()}`
+  const hashIndex = base.indexOf('#')
+  const noHash = hashIndex == -1 ? base : base.slice(0, hashIndex)
+  const qIndex = noHash.indexOf('?')
+  const path = (qIndex == -1 ? noHash : noHash.slice(0, qIndex)).replace(/\/+$/, '')
+  const query = qIndex == -1 ? '' : noHash.slice(qIndex + 1).replace(/^&+|&+$/g, '')
+  const params = query ? `${query}&_=${Date.now()}` : `_=${Date.now()}`
+  return `${path}/${action}?${params}`
 }
 
 const post = async(base, action, body, timeout = 20000) => {
@@ -308,6 +319,7 @@ export const syncCloud = async() => {
   try {
     return await syncPromise
   } finally {
+    // eslint-disable-next-line require-atomic-updates
     syncPromise = null
   }
 }
@@ -364,7 +376,7 @@ export const initCloudAutoSync = () => {
   const run = () => {
     if (appSetting['sync.cloudAuto'] == 'off') return
     if (!appSetting['sync.cloudCode'] || !appSetting['sync.cloudSecret']) return
-    void syncCloud().catch(err => console.warn('cloud auto sync failed', err))
+    syncCloud().catch(err => console.warn('cloud auto sync failed', err))
   }
   setTimeout(run, 8000)
   autoTimer = setInterval(run, 10 * 60 * 1000)

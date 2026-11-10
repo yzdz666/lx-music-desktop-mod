@@ -1,7 +1,7 @@
 /* eslint-env browser */
 
 /** 二改版发布信息：关于页、更新检查共用一处，改版本只改这里（package.json 的 version 需同步） */
-export const MOD_VERSION = '1.1.5'
+export const MOD_VERSION = '1.1.6'
 /**
  * 二改版站点统一用手机版那个域名（af384…）。
  * 旧的电脑版专用站 aa9247… 是早期单独发布的实例，本地没有它的发布记录，

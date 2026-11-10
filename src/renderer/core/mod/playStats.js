@@ -68,20 +68,61 @@ const scheduleSave = () => {
 }
 
 let session = null
+let flushTimer = null
 
 const songKey = music => `${music.source == null ? '' : music.source}:${music.id == null ? '' : music.id}`
 
+/** 本次会话真正播了多久（播放中实时算，不打断计时） */
+const effectiveMs = () => session
+  ? session.accumMs + (session.playing ? Date.now() - session.startedAt : 0)
+  : 0
+
 const startSession = () => {
-  if (!musicInfo.id) return
+  if (!musicInfo.id) return false
   session = {
     key: songKey(musicInfo),
     name: musicInfo.name || '',
     singer: musicInfo.singer || '',
     source: musicInfo.source == null ? '' : musicInfo.source,
     accumMs: 0,
+    settledMs: 0,
+    counted: false,
     playing: false,
     startedAt: 0,
   }
+  return true
+}
+
+/**
+ * 把还没落账的增量写进当天统计。
+ *
+ * 之前只在切歌时结算，导致「一边放歌一边打开听歌报告」永远显示 0 秒。
+ * 现在播放中每 5 秒也会走一次，session 不销毁、继续计时。
+ */
+const flushSession = () => {
+  if (!session) return
+  const totalMs = effectiveMs()
+  const deltaMs = totalMs - session.settledMs
+  if (deltaMs < 1000) return
+
+  const store = load()
+  const now = new Date()
+  const key = dayKey(now)
+  const day = store.days[key] || (store.days[key] = { sec: 0, cnt: 0, hours: new Array(24).fill(0), songs: {} })
+  const deltaSec = Math.floor(deltaMs / 1000)
+  session.settledMs += deltaSec * 1000
+  day.sec += deltaSec
+
+  if (!session.counted && session.settledMs / 1000 >= MIN_SECONDS) {
+    session.counted = true
+    day.cnt++
+    day.hours[now.getHours()]++
+    day.songs[session.key] = (day.songs[session.key] || 0) + 1
+    if (!store.catalog[session.key]) {
+      store.catalog[session.key] = { n: session.name, s: session.singer, src: session.source }
+    }
+  }
+  scheduleSave()
 }
 
 const markPlaying = () => {
@@ -94,30 +135,14 @@ const markPaused = () => {
   if (!session || !session.playing) return
   session.accumMs += Date.now() - session.startedAt
   session.playing = false
+  flushSession()
 }
 
 const commit = () => {
   if (!session) return
   markPaused()
-  const accumSec = Math.round(session.accumMs / 1000)
-  const current = session
+  flushSession()
   session = null
-  if (accumSec <= 0) return
-
-  const store = load()
-  const now = new Date()
-  const key = dayKey(now)
-  const day = store.days[key] || (store.days[key] = { sec: 0, cnt: 0, hours: new Array(24).fill(0), songs: {} })
-  day.sec += accumSec
-  if (accumSec >= MIN_SECONDS) {
-    day.cnt++
-    day.hours[now.getHours()]++
-    day.songs[current.key] = (day.songs[current.key] || 0) + 1
-    if (!store.catalog[current.key]) {
-      store.catalog[current.key] = { n: current.name, s: current.singer, src: current.source }
-    }
-  }
-  scheduleSave()
 }
 
 /** 注册监听（幂等） */
@@ -129,12 +154,21 @@ export const initPlayStats = () => {
 
   watch(() => musicInfo.id, () => {
     commit()
-    startSession()
+    if (!startSession()) return
+    // 切歌后 isPlay 不变时 watch 不会触发，这里按当前状态把计时接上
+    if (isPlay.value) markPlaying()
   })
   watch(isPlay, playing => {
     if (playing) markPlaying()
     else markPaused()
   })
+
+  // 播放中每 5 秒落一次账，报告随时打开都有数
+  if (!flushTimer) {
+    flushTimer = setInterval(() => {
+      if (session?.playing) flushSession()
+    }, 5000)
+  }
 }
 
 const rangeStart = (range) => {
@@ -148,6 +182,8 @@ const rangeStart = (range) => {
 }
 
 export const getPlayReport = (range = 'month') => {
+  // 把「正在播、还没落账」的那一段先算进去
+  flushSession()
   const store = load()
   const from = rangeStart(range)
   const songPlays = {}

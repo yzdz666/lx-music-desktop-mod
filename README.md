@@ -28,16 +28,16 @@
 - **一起听** —— 与手机版同一协议、同一房间，手机电脑同房
 - **平台设置** —— 音源音质测试、三平台账号、自定义主题背景、听歌播报、关于与检查更新
 
-当前版本 **1.1.5**，功能对齐手机版 **v1.22.38**。
+当前版本 **1.1.6**，功能对齐手机版 **v1.22.39**。
 
 ## 下载
 
 | 文件 | 平台 | 大小 | 说明 |
 | --- | --- | --- | --- |
-| `LXMod-Desktop-v1.1.5-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
-| `LXMod-Desktop-v1.1.5-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
-| `LXMod-Desktop-v1.1.5-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.5-linux-x64/lx-music-desktop` |
-| `lxmod-desktop-src-v1.1.5.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
+| `LXMod-Desktop-v1.1.6-win-x64-Setup.exe` | Windows 10/11 x64 | 115.8 MB | 安装版，带开始菜单与桌面快捷方式，多数人用这个 |
+| `LXMod-Desktop-v1.1.6-win-x64-green.7z` | Windows 10/11 x64 | 95.3 MB | 绿色版，解压即用，不写注册表 |
+| `LXMod-Desktop-v1.1.6-linux-x64.tar.gz` | Linux x64 | 126.4 MB | 免安装包，解压后运行 `LXMod-Desktop-v1.1.6-linux-x64/lx-music-desktop` |
+| `lxmod-desktop-src-v1.1.6.zip` | 源码 | 约 13.1 MB | 完整可构建源码，不含 `node_modules` 与构建产物 |
 
 前往 [Releases](https://github.com/yzdz666/lx-music-desktop-mod/releases/latest) 下载，或访问下载页：
 <https://af384ee6deb6e09e2.app.workbuddy.host/desktop.html?sharecode=MKPWEVLBUS>
@@ -159,6 +159,16 @@ doc/mod-desktop.md                       二改说明（功能、实现、验证
 - 桌面版与手机版数据不互通（歌单 / 设置各自独立）
 
 ## 更新日志
+
+### 1.1.6（2026-11-10）
+
+修复 1.1.5 暴露的三个问题，与手机版 1.22.39 同步。
+
+**云同步 403**：默认同步地址自带 `?sharecode=xxx`，拼接口名时接在了整串末尾，实际请求变成 `/api/sync?sharecode=xxx/create`，网关读到的 sharecode 被污染，直接拒。改为把接口名插到路径末尾、查询串统一重建，与手机版同一套 `buildUrl`。
+
+**听歌报告播放中不更新**：之前只在切歌时结算，一边放歌一边打开报告总是 0。现在播放中每 5 秒落一次账，切歌时按当前播放状态把计时接上，打开报告前先结算在播的那一段。
+
+**同一句歌词显示两遍**：翻译文件里有与正文完全相同的行（中文歌的「翻译」常是原文照抄），被挂成译文后渲染成正文 + 小字两行；桌面歌词窗口两行直接拼接，更明显。`line-player.js` 解析时按「与正文相同 / 已挂译文相同」跳过，桌面歌词下发前再过滤一遍。
 
 ### 1.1.5（2026-11-10）
 

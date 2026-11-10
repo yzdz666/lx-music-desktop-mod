@@ -65,7 +65,9 @@ export default () => {
     })
   }
   const handleSetLyricLine = (text: string, line: number) => {
-    let curLine = lyric.lines[line]?.extendedLyrics.join('\n') ?? ''
+    // 译文里混进与正文相同的一句时不重复下发，否则桌面歌词窗口会把同一句印两行
+    const extended = (lyric.lines[line]?.extendedLyrics ?? []).filter(item => item !== text)
+    const curLine = extended.join('\n')
     sendPlayerStatus({
       lyricLineText: text,
       lyricLineAllText: curLine ? text + '\n' + curLine : text,
